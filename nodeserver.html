@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+  window.onload=function(){
+    var nick = prompt('Enter your nickname:');
+    var input = document.getElementById('input');
+
+    // input.focus();
+
+    // var websocket = require('faye-websocket'),
+    //     ws        = new websocket.Client('ws://' + location.host +'/');
+    //
+    // ws.on('open' ,function(event) {
+    //   console.log('open');
+    //   ws.send('Hello World!');
+    // });
+    //
+    // ws.on('message' , function(event) {
+    //   console.log('message: '+event.data);
+    // });
+    //
+    // ws.on('close',function(event) {
+    //   console.log('close' , event.code , event.reason);
+    //   ws = null;
+    // });
+
+    var ws = new WebSocket('ws://'+'localhost:8888'+'/');
+    ws.onmessage = function(event) {
+      var msg = event.data;
+      // var node = document.createTextNode(msg);
+      var div = document.createElement('div');
+      // div.appendChild(node);
+      div.innerHTML = msg;
+      document.body.insertBefore(div , input);
+      input.scrollIntoView();
+    }
+
+    input.onchange = function(){
+      var msg = nick+': '+input.value;
+      ws.send(msg);
+      input.value = "";
+    }
+  }
+  </script>
+
+  <input id="input" style="width:100%" />
+</body>
+</html>
