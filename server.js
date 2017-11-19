@@ -39,7 +39,13 @@ server.on('upgrade', function(request ,socket , body) {
         thews.send(event.data);
       });
       // ws.send(event.data);
-      console.log('message',event.data);
+      //slice(str.indexOf(':')+1 , -1);
+      if(event.data.substr(event.data.indexOf(":")+2 ,5)==="data:"){
+        console.log('message',event.data.substr(0,event.data.indexOf(":")+1),"an image");
+      } else {
+        console.log('message',event.data);
+
+      }
     });
 
     ws.on('close' , function(event) {

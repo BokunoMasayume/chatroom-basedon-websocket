@@ -11,7 +11,7 @@
   window.onload=function(){
     var nick = prompt('Enter your nickname:');
     var input = document.getElementById('input');
-
+    var image = document.getElementById('image');
     // input.focus();
 
     // var websocket = require('faye-websocket'),
@@ -34,22 +34,53 @@
     var ws = new WebSocket('ws://'+'localhost:8888'+'/');
     ws.onmessage = function(event) {
       var msg = event.data;
-      // var node = document.createTextNode(msg);
-      var div = document.createElement('div');
-      // div.appendChild(node);
-      div.innerHTML = msg;
-      document.body.insertBefore(div , input);
+      var start = msg.indexOf(':')+2;
+      if(msg.substr( start,5)!=="data:"){
+        // var node = document.createTextNode(msg);
+        var div = document.createElement('div');
+        // div.appendChild(node);
+        div.innerHTML = msg;
+        document.body.insertBefore(div , input);
+      }else {
+        var a = new Image();
+        a.src = msg.slice(start, -1);
+        var div = document.createElement('div');
+        var node = document.createTextNode(msg.substr(0,start));
+        div.appendChild(node);
+        div.appendChild(document.createElement('br'));
+        div.appendChild(a);
+        document.body.insertBefore(div , input);
+      }
+
       input.scrollIntoView();
     }
 
     input.onchange = function(){
       var msg = nick+': '+input.value;
+
       ws.send(msg);
       input.value = "";
     }
+
+    image.onchange = function(){
+      if(!image.files){
+        return;
+      }
+      var f =  image.files[0];
+      var reader = new FileReader();
+
+      reader.onload = function(e){
+        var data = e.target.result;
+        ws.send(nick+': '+data);
+      }
+
+      reader.readAsDataURL(f);
+    }
+
   }
   </script>
 
   <input id="input" style="width:100%" />
+  <input type="file" id="image" />
 </body>
 </html>
