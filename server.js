@@ -18,7 +18,18 @@ var clients = [];
 
 server.on('request', function(req , res) {
   console.log("server on request");
-})
+  fs.readFile('./nodeserver.html' , function(err , data) {
+    if(err) {
+      res.writeHead(500 , {"Content-Type" : "text/plain"});
+      res.write(err+"\n");
+      res.end();
+    } else {
+      res.writeHead(200 , {'Content-Type' : 'text/html;charset=utf-8'});
+      res.write(data);
+      res.end();
+    }
+  });
+});
 
 server.on('upgrade', function(request ,socket , body) {
   console.log("http upgrade");
