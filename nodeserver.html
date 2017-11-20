@@ -12,6 +12,8 @@
     var nick = prompt('Enter your nickname:');
     var input = document.getElementById('input');
     var image = document.getElementById('image');
+
+    var sendObj = new Object();
     // input.focus();
 
     // var websocket = require('faye-websocket'),
@@ -32,33 +34,72 @@
     // });
 
     var ws = new WebSocket('ws://'+'localhost:8888'+'/');
+    ws.onopen = function(){
+      sendObj.type = "comein";
+      sendObj.data = "";
+      sendObj.author = nick;
+      ws.send(JSON.stringify(sendObj));
+      console.log("opened and sended nickname");
+    }
+
     ws.onmessage = function(event) {
       var msg = event.data;
-      var start = msg.indexOf(':')+2;
-      if(msg.substr( start,5)!=="data:"){
-        // var node = document.createTextNode(msg);
+
+      var receivedObj = JSON.parse(msg);
+
+      // var start = msg.indexOf(':')+2;
+      // if(msg.substr( start,5)!=="data:"){
+      //   // var node = document.createTextNode(msg);
+      //   var div = document.createElement('div');
+      //   // div.appendChild(node);
+      //   div.innerHTML = msg;
+      //   document.body.insertBefore(div , input);
+      // }else {
+      //   var a = new Image();
+      //   a.src = msg.slice(start, -1);
+      //   var div = document.createElement('div');
+      //   var node = document.createTextNode(msg.substr(0,start));
+      //   div.appendChild(node);
+      //   div.appendChild(document.createElement('br'));
+      //   div.appendChild(a);
+      //   document.body.insertBefore(div , input);
+      // }
+
+      if(receivedObj.type == "text"){
         var div = document.createElement('div');
-        // div.appendChild(node);
-        div.innerHTML = msg;
+        div.innerHTML = nick + ": " + receivedObj.data;
         document.body.insertBefore(div , input);
-      }else {
+      }else if (receivedObj.type == "image") {
         var a = new Image();
-        a.src = msg.slice(start, -1);
+        a.src = receivedObj.data;
         var div = document.createElement('div');
-        var node = document.createTextNode(msg.substr(0,start));
+        var node = document.createTextNode(receivedObj.author+": ");
         div.appendChild(node);
         div.appendChild(document.createElement('br'));
         div.appendChild(a);
+        document.body.insertBefore(div , input);
+      }else if (receivedObj.type == "comein") {
+        var div = document.createElement('div');
+        div.innerHTML = receivedObj.author + " 进来了";
+        document.body.insertBefore(div , input);
+      }else {
+        var div = document.createElement('div');
+        div.innerHTML = receivedObj.author + " 出去了";
         document.body.insertBefore(div , input);
       }
 
       input.scrollIntoView();
     }
 
-    input.onchange = function(){
-      var msg = nick+': '+input.value;
 
-      ws.send(msg);
+
+    input.onchange = function(){
+      var msg = input.value;
+      sendObj.type = 'text';
+      sendObj.data = msg;
+      sendObj.author = nick;
+
+      ws.send(JSON.stringify(sendObj));
       input.value = "";
     }
 
@@ -67,11 +108,21 @@
         return;
       }
       var f =  image.files[0];
+
+      if(!/image\/\w+/.test(f.type)){
+        alert("请确保上传文件为图像");
+        return;
+      }
+
       var reader = new FileReader();
 
       reader.onload = function(e){
         var data = e.target.result;
-        ws.send(nick+': '+data);
+        sendObj.type = "image";
+        sendObj.data = data;
+        sendObj.author = nick;
+
+        ws.send(JSON.stringify(sendObj));
       }
 
       reader.readAsDataURL(f);

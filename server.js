@@ -2,6 +2,11 @@ var websocket = require('faye-websocket'),
     http      = require('http'),
     fs        = require('fs');
 
+//放着记一下
+//ps aux | grep node 查看进程PID
+//kill -9 PID 杀掉node server的进程
+
+
 //createServer方法其实本质上也是为http.Server对象添加了一个request事件监听
 //server = new http.Server() ;server.on('request' , function);
 //  ==
@@ -38,25 +43,33 @@ server.on('upgrade', function(request ,socket , body) {
 
     ws.on('open', function(event){
       clients.push(ws);
-      clients.forEach(function(thews) {
-        thews.send("有人进来啦");
-      });
       console.log("open a  ws");
     })
     ws.on('message' , function(event) {
       console.log("clients length : " + clients.length);
-
       clients.forEach(function(thews , i ,cli) {
         thews.send(event.data);
       });
-      // ws.send(event.data);
-      //slice(str.indexOf(':')+1 , -1);
-      if(event.data.substr(event.data.indexOf(":")+2 ,5)==="data:"){
-        console.log('message',event.data.substr(0,event.data.indexOf(":")+1),"an image");
-      } else {
-        console.log('message',event.data);
 
+      var obj = JSON.parse(event.data);
+      if(obj.type == "comein"){
+        ws.nickname = obj.author;
       }
+      // if(event.data.substr(event.data.indexOf(":")+2 ,5)==="data:"){
+      //   console.log('message',event.data.substr(0,event.data.indexOf(":")+1),"an image");
+      // } else {
+      //   console.log('message',event.data);
+      //
+      // }
+
+      if(obj.type == "text"){
+        console.log('message',obj.author , obj.data);
+      }else if (obj.type == "image") {
+        console.log('message',obj.author , "an image");
+      }else{
+        console.log('message' , obj.author,"come in");
+      }
+
     });
 
     ws.on('close' , function(event) {
@@ -66,7 +79,11 @@ server.on('upgrade', function(request ,socket , body) {
         return thews !== ws;
       });
       clients.forEach(function(thews) {
-        thews.send("有人退出啦");
+        var obj = new Object();
+        obj.type =  "comeout";
+        obj.data = "";
+        obj.author = ws.nickname;
+        thews.send(JSON.stringify(obj));
       });
       console.log("clients length : " + clients.length);
       ws = null;
