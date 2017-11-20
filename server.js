@@ -47,14 +47,24 @@ server.on('upgrade', function(request ,socket , body) {
     })
     ws.on('message' , function(event) {
       console.log("clients length : " + clients.length);
-      clients.forEach(function(thews , i ,cli) {
-        thews.send(event.data);
-      });
 
       var obj = JSON.parse(event.data);
+
       if(obj.type == "comein"){
         ws.nickname = obj.author;
+        obj.data = clients.length;
+        clients.forEach(function(thews , i ,cli) {
+          thews.send(JSON.stringify(obj));
+        });
+      }else {
+        clients.forEach(function(thews , i ,cli) {
+          thews.send(event.data);
+        });
       }
+
+
+
+
       // if(event.data.substr(event.data.indexOf(":")+2 ,5)==="data:"){
       //   console.log('message',event.data.substr(0,event.data.indexOf(":")+1),"an image");
       // } else {
@@ -81,7 +91,7 @@ server.on('upgrade', function(request ,socket , body) {
       clients.forEach(function(thews) {
         var obj = new Object();
         obj.type =  "comeout";
-        obj.data = "";
+        obj.data = clients.length;
         obj.author = ws.nickname;
         thews.send(JSON.stringify(obj));
       });

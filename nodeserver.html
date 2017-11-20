@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
+  <style type="text/css">
+  #people{
+    position: fixed;
+    top:20px;
+    left:90%;
+    display: inline-block;
+  }
+  </style>
 </head>
 <body>
   <script>
@@ -12,6 +20,7 @@
     var nick = prompt('Enter your nickname:');
     var input = document.getElementById('input');
     var image = document.getElementById('image');
+    var people = document.getElementById("people");
 
     var sendObj = new Object();
     // input.focus();
@@ -67,7 +76,7 @@
 
       if(receivedObj.type == "text"){
         var div = document.createElement('div');
-        div.innerHTML = nick + ": " + receivedObj.data;
+        div.innerHTML = receivedObj.author + ": " + receivedObj.data;
         document.body.insertBefore(div , input);
       }else if (receivedObj.type == "image") {
         var a = new Image();
@@ -79,10 +88,12 @@
         div.appendChild(a);
         document.body.insertBefore(div , input);
       }else if (receivedObj.type == "comein") {
+        people.innerHTML = "在线人数："+receivedObj.data;
         var div = document.createElement('div');
         div.innerHTML = receivedObj.author + " 进来了";
         document.body.insertBefore(div , input);
       }else {
+        people.innerHTML = "在线人数："+receivedObj.data;
         var div = document.createElement('div');
         div.innerHTML = receivedObj.author + " 出去了";
         document.body.insertBefore(div , input);
@@ -130,7 +141,7 @@
 
   }
   </script>
-
+  <div id="people"></div>
   <input id="input" style="width:100%" />
   <input type="file" id="image" />
 </body>
