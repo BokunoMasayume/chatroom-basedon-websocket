@@ -2,6 +2,8 @@ var websocket = require('faye-websocket'),
     http      = require('http'),
     fs        = require('fs');
 
+var url = require('url');
+
 //放着记一下
 //ps aux | grep node 查看进程PID
 //kill -9 PID 杀掉node server的进程
@@ -23,6 +25,7 @@ var clients = [];
 
 server.on('request', function(req , res) {
   console.log("server on request");
+  
   fs.readFile('./nodeserver.html' , function(err , data) {
     if(err) {
       res.writeHead(500 , {"Content-Type" : "text/plain"});
@@ -74,10 +77,8 @@ server.on('upgrade', function(request ,socket , body) {
 
       if(obj.type == "text"){
         console.log('message',obj.author , obj.data);
-      }else if (obj.type == "image") {
-        console.log('message',obj.author , "an image");
       }else{
-        console.log('message' , obj.author,"come in");
+        console.log('message' , obj.author,obj.type);
       }
 
     });
