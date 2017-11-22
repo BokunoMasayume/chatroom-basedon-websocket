@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -30,6 +30,7 @@
     var openVoice = document.getElementById("openVoice");
     var gRecorder = null;
     var door = false;
+    var perDone = true;
     // input.focus();
 
     // var websocket = require('faye-websocket'),
@@ -172,8 +173,11 @@
 
     document.onkeydown = function(e) {
       if(e.keyCode === 65) {//'a'
-        if(!door) {
+        if((!door) && perDone) {
+          gRecorder.clear();
+
           gRecorder.start();
+          console.log("start");
           door = true;
         }
       }
@@ -181,7 +185,8 @@
 
     document.onkeyup = function(e) {
       if(e.keyCode === 65) {
-        if(door) {
+        if(door && perDone) {
+          console.log("end");
           var reader = new FileReader();
 
           reader.onload = function(e) {
@@ -191,13 +196,18 @@
             sendObj.author = nick;
             // console.log("base64 "+data);
             ws.send(JSON.stringify(sendObj));
+            perDone = true;
 
           };
+	        gRecorder.stop();
+          var blob = gRecorder.getBlob();
 
-          reader.readAsDataURL(gRecorder.getBlob());
           gRecorder.clear();
-          gRecorder.stop();
+
+          reader.readAsDataURL(blob);
           door = false;
+          perDone = false;
+
         }
       }
     };
@@ -214,7 +224,7 @@
 
     var SRecorder = function(stream) {
       config = {};
-      config.sampleBits = config.sampleBits || 8;
+      config.sampleBits = config.sampleBits || 16;
       config.sampleRate = config.sampleRate || (44100 / 6);
 
       var context = new AudioContext();
