@@ -52,13 +52,25 @@
     openVoice.onclick = function() {
       if(!navigator.getUserMedia) {
         alert("抱歉，你的设备无法语音聊天");
+        openVoice.innerHTML = "当我不存在吧";
         return false;
       }
-      SRecorder.get(function (rec) {
-        gRecorder = rec;
-      });
-      var msg = document.getElementById("msg");
-      msg.innerHTML = "按住a开始录音，松开a发送";
+
+      // var msg = document.getElementById("msg");
+      // msg.innerHTML = "按住a开始录音，松开a发送";
+      if(openVoice.innerHTML == "开始录音" && door == false) {
+        startVoice();
+        openVoice.innerHTML = "结束录音并发送";
+      } else if (openVoice.innerHTML == "结束录音并发送" && door ==true) {
+        endVoice();
+        openVoice.innerHTML = "开始录音";
+      }else {
+        openVoice.innerHTML = "开始录音";
+        
+        SRecorder.get(function (rec) {
+          gRecorder = rec;
+        });
+      }
 
 
     };
@@ -171,21 +183,22 @@
       reader.readAsDataURL(f);
     };
 
-    document.onkeydown = function(e) {
-      if(e.keyCode === 65) {//'a'
-        if((!door) && perDone) {
+
+    startVoice = function() {
+
+        if(perDone) {
           gRecorder.clear();
 
           gRecorder.start();
           console.log("start");
           door = true;
         }
-      }
+
     };
 
-    document.onkeyup = function(e) {
-      if(e.keyCode === 65) {
-        if(door && perDone) {
+    endVoice = function() {
+
+        if(perDone) {
           console.log("end");
           var reader = new FileReader();
 
@@ -199,7 +212,7 @@
             perDone = true;
 
           };
-	        gRecorder.stop();
+          gRecorder.stop();
           var blob = gRecorder.getBlob();
 
           gRecorder.clear();
@@ -209,8 +222,49 @@
           perDone = false;
 
         }
-      }
+
     };
+
+    // document.onkeydown = function(e) {
+    //   if(e.keyCode === 65) {//'a'
+    //     if((!door) && perDone) {
+    //       gRecorder.clear();
+    //
+    //       gRecorder.start();
+    //       console.log("start");
+    //       door = true;
+    //     }
+    //   }
+    // };
+    //
+    // document.onkeyup = function(e) {
+    //   if(e.keyCode === 65) {
+    //     if(door && perDone) {
+    //       console.log("end");
+    //       var reader = new FileReader();
+    //
+    //       reader.onload = function(e) {
+    //         var data = e.target.result;
+    //         sendObj.type = 'voice';
+    //         sendObj.data = data;
+    //         sendObj.author = nick;
+    //         // console.log("base64 "+data);
+    //         ws.send(JSON.stringify(sendObj));
+    //         perDone = true;
+    //
+    //       };
+	  //       gRecorder.stop();
+    //       var blob = gRecorder.getBlob();
+    //
+    //       gRecorder.clear();
+    //
+    //       reader.readAsDataURL(blob);
+    //       door = false;
+    //       perDone = false;
+    //
+    //     }
+    //   }
+    // };
 
 
     function dataURLtoBlob(dataurl) {
@@ -375,6 +429,7 @@
             },
             function(){
               alert("读取音频似乎出现了问题");
+              openVoice.innerHTML = "其实，语音聊天也没什么好的";
             }
           );
         }//if
