@@ -66,7 +66,7 @@
         openVoice.innerHTML = "开始录音";
       }else {
         openVoice.innerHTML = "开始录音";
-        
+
         SRecorder.get(function (rec) {
           gRecorder = rec;
         });
@@ -76,11 +76,30 @@
     };
 
     var ws = new WebSocket('ws://'+'localhost:8888'+'/');
+    var wsImg = new WebSocket('ws://'+'localhost:8888'+'/');
+    var wsVic = new WebSocket('ws://'+'localhost:8888'+'/');
+
     ws.onopen = function(){
       sendObj.type = "comein";
       sendObj.data = "";
       sendObj.author = nick;
       ws.send(JSON.stringify(sendObj));
+      console.log("opened and sended nickname");
+    }
+
+    wsImg.onopen = function(){
+      sendObj.type = "comeinImg";
+      sendObj.data = "";
+      sendObj.author = nick;
+      wsImg.send(JSON.stringify(sendObj));
+      console.log("opened img and sended nickname");
+    }
+
+    wsVic.onopen = function(){
+      sendObj.type = "comeinVic";
+      sendObj.data = "";
+      sendObj.author = nick;
+      wsVic.send(JSON.stringify(sendObj));
       console.log("opened and sended nickname");
     }
 
@@ -111,7 +130,51 @@
         var div = document.createElement('div');
         div.innerHTML = receivedObj.author + ": " + receivedObj.data;
         document.body.insertBefore(div , input);
-      }else if (receivedObj.type == "image") {
+      }
+      // else if (receivedObj.type == "image") {
+      //   var a = new Image();
+      //   a.src = receivedObj.data;
+      //   var div = document.createElement('div');
+      //   var node = document.createTextNode(receivedObj.author+": ");
+      //   div.appendChild(node);
+      //   div.appendChild(document.createElement('br'));
+      //   div.appendChild(a);
+      //   document.body.insertBefore(div , input);
+      // }
+      // else if (receivedObj.type == "voice") {
+      //   var div = document.createElement('div');
+      //   var node = document.createTextNode(receivedObj.author+": ");
+      //   var audio = document.createElement('audio');
+      //   audio.controls = true;
+      //   // audio.src = window.URL.createObjectURL(receivedObj.data);
+      //   receive(audio , receivedObj.data);
+      //   // console.log(audio.src);
+      //   div.appendChild(node);
+      //   div.appendChild(audio);
+      //   document.body.insertBefore(div , input);
+      // }
+      else if (receivedObj.type == "comein") {
+        people.innerHTML = "在线人数："+receivedObj.data;
+        var div = document.createElement('div');
+        div.innerHTML = receivedObj.author + " 进来了";
+        document.body.insertBefore(div , input);
+      }
+      else {
+        people.innerHTML = "在线人数："+receivedObj.data;
+        var div = document.createElement('div');
+        div.innerHTML = receivedObj.author + " 出去了";
+        document.body.insertBefore(div , input);
+      }
+
+      input.scrollIntoView();
+    }
+
+    wsImg.onmessage = function(event) {
+      var msg = event.data;
+
+      var receivedObj = JSON.parse(msg);
+
+      if (receivedObj.type == "image") {
         var a = new Image();
         a.src = receivedObj.data;
         var div = document.createElement('div');
@@ -120,7 +183,17 @@
         div.appendChild(document.createElement('br'));
         div.appendChild(a);
         document.body.insertBefore(div , input);
-      }else if (receivedObj.type == "voice") {
+      }
+
+      input.scrollIntoView();
+    }
+
+    wsVic.onmessage = function(event) {
+      var msg = event.data;
+
+      var receivedObj = JSON.parse(msg);
+
+      if (receivedObj.type == "voice") {
         var div = document.createElement('div');
         var node = document.createTextNode(receivedObj.author+": ");
         var audio = document.createElement('audio');
@@ -130,16 +203,6 @@
         // console.log(audio.src);
         div.appendChild(node);
         div.appendChild(audio);
-        document.body.insertBefore(div , input);
-      }else if (receivedObj.type == "comein") {
-        people.innerHTML = "在线人数："+receivedObj.data;
-        var div = document.createElement('div');
-        div.innerHTML = receivedObj.author + " 进来了";
-        document.body.insertBefore(div , input);
-      }else {
-        people.innerHTML = "在线人数："+receivedObj.data;
-        var div = document.createElement('div');
-        div.innerHTML = receivedObj.author + " 出去了";
         document.body.insertBefore(div , input);
       }
 
@@ -177,7 +240,7 @@
         sendObj.data = data;
         sendObj.author = nick;
 
-        ws.send(JSON.stringify(sendObj));
+        wsImg.send(JSON.stringify(sendObj));
       }
 
       reader.readAsDataURL(f);
@@ -208,7 +271,7 @@
             sendObj.data = data;
             sendObj.author = nick;
             // console.log("base64 "+data);
-            ws.send(JSON.stringify(sendObj));
+            wsVic.send(JSON.stringify(sendObj));
             perDone = true;
 
           };

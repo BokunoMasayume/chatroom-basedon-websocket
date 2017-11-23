@@ -22,10 +22,12 @@ var server = http.createServer( function(req , res){
   console.log("create server");
 });
 var clients = [];
+var clientsImage = [];
+var clientsVoice = [];
 
 server.on('request', function(req , res) {
   console.log("server on request");
-  
+
   fs.readFile('./nodeserver.html' , function(err , data) {
     if(err) {
       res.writeHead(500 , {"Content-Type" : "text/plain"});
@@ -45,7 +47,7 @@ server.on('upgrade', function(request ,socket , body) {
     var ws = new websocket(request , socket , body);
 
     ws.on('open', function(event){
-      clients.push(ws);
+      // clients.push(ws);
       console.log("open a  ws");
     })
     ws.on('message' , function(event) {
@@ -55,12 +57,30 @@ server.on('upgrade', function(request ,socket , body) {
 
       if(obj.type == "comein"){
         ws.nickname = obj.author;
+        ws.itype = "text";
+        clients.push(ws);
         obj.data = clients.length;
         clients.forEach(function(thews , i ,cli) {
           thews.send(JSON.stringify(obj));
         });
-      }else {
+      }else if (obj.type == "comeinImg") {
+        ws.nickname = obj.author;
+        ws.itype = "image";
+        clientsImage.push(ws);
+      }else if (obj.type == "comeinVic") {
+        ws.nickname = obj.author;
+        ws.itype = "voice";
+        clientsVoice.push(ws);
+      }else if (obj.type == "text"){
         clients.forEach(function(thews , i ,cli) {
+          thews.send(event.data);
+        });
+      }else if (obj.type == "voice") {
+        clientsVoice.forEach(function(thews , i ,cli) {
+          thews.send(event.data);
+        });
+      }else {
+        clientsImage.forEach(function(thews , i ,cli) {
           thews.send(event.data);
         });
       }
@@ -86,17 +106,28 @@ server.on('upgrade', function(request ,socket , body) {
     ws.on('close' , function(event) {
       console.log('close', event.code , event.reason);
 
-      clients = clients.filter(function(thews){
-        return thews !== ws;
-      });
-      clients.forEach(function(thews) {
-        var obj = new Object();
-        obj.type =  "comeout";
-        obj.data = clients.length;
-        obj.author = ws.nickname;
-        thews.send(JSON.stringify(obj));
-      });
-      console.log("clients length : " + clients.length);
+      if(ws.itype == "text"){
+        clients = clients.filter(function(thews){
+          return thews !== ws;
+        });
+
+        clientsImage = clientsImage.filter(function(thews){
+          return thews !== ws;
+        });
+
+        clientsVoice = clientsVoice.filter(function(thews){
+          return thews !== ws;
+        });
+
+        clients.forEach(function(thews) {
+          var obj = new Object();
+          obj.type =  "comeout";
+          obj.data = clients.length;
+          obj.author = ws.nickname;
+          thews.send(JSON.stringify(obj));
+        });
+        console.log("clients length : " + clients.length);
+    }
       ws = null;
     });
   }
